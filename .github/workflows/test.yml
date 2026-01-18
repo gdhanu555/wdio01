@@ -1,0 +1,36 @@
+name: WebdriverIO Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install xvfb for headless browser testing
+      run: sudo apt-get update && sudo apt-get install -y xvfb
+
+    - name: Create missing expect-webdriverio index file
+      run: |
+        if [ -d "node_modules/expect-webdriverio/lib" ] && [ ! -f "node_modules/expect-webdriverio/lib/index.js" ]; then
+          echo "export * from './src/index.js';" > node_modules/expect-webdriverio/lib/index.js
+        fi
+
+    - name: Run WebdriverIO tests
+      run: npm run wdio
